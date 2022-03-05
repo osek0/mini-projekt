@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+
+  mysql-development:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: app
+    ports:
+      - "3308:3306"
+    volumes:
+      - "./docker/config/my.conf:/etc/mysql/conf.d/config-file.cnf"
+      - "./docker/data:/var/lib/mysql:rw"
