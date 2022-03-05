@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
+import { Post } from 'src/post/post.entity';
 import { Connection, EntityManager } from 'typeorm';
 import { Comment } from './comment.entity';
 import { CommentStatus } from './comment.resources';
@@ -19,6 +20,31 @@ export class CommentService {
       .findTrees();
 
     return commentTree.filter((comment) => comment.postId === postId);
+  }
+
+  async addComment(postId: string, content: string, parentId?: string) {
+    const post = await this.manager.findOne(Post, { id: postId });
+    if (!post) throw new BadRequestException('post-unknown');
+
+    const plainObject: { content: string; post: Post; parent?: Comment } = {
+      content,
+      post,
+    };
+
+    if (parentId) {
+      const parent = await this.manager.findOne(Comment, {
+        id: parentId,
+        postId,
+      });
+      if (!parent) throw new BadRequestException('parent-unknown');
+
+      plainObject.parent = parent;
+    }
+
+    const comment = this.manager.create(Comment, plainObject);
+    await this.manager.insert(Comment, comment);
+
+    return comment;
   }
 
   async removeComment(commentId: string) {
